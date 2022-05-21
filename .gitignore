@@ -4,3 +4,4 @@
 *.js
 *.exe
 .idea/
+/temp/.ignore

@@ -4,4 +4,4 @@
 *.js
 *.exe
 .idea/
-/temp/.ignore
+/temp/.gitignore

@@ -1,0 +1,33 @@
+{
+  "online": false,
+  "offline_deployment": {
+    "account": "",
+    "password": "",
+    "use_headless": false,
+    "use_gpu": false,
+    "geckodriver_path": "geckodriver.exe"
+  },
+  "online_deployment": {
+    "use_headless": true,
+    "use_gpu": false
+  },
+
+  "delay_time": {
+    "implicitly_wait_time": 5,
+    "detect_slider_wait_time": 5,
+    "login_complete_wait_time": 10,
+    "login_complete_interval_time": 1,
+    "page_load_wait_time": 10,
+    "page_load_interval_time": 1,
+    "simulate_slide_down_interval_time": 0.5,
+    "submit_click_wait_time": 1,
+    "confirm_click_wait_time": 1,
+    "switch_page_wait_time": 1,
+    "crawl_results_wait_time": 2,
+    "quit_wait_time": 1
+  },
+  "slider_try_num": 5,
+
+  "Temperature_index": "https://idas.uestc.edu.cn/authserver/login?service=https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/*default/index.do#/add",
+  "Info_index": "https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/*default/index.do#/dailyReport"
+}

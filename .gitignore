@@ -1,0 +1,6 @@
+*.log
+*.png
+*.jpg
+*.js
+*.exe
+.idea/

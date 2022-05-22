@@ -214,8 +214,9 @@ class AutomaticReport:
             # 等待登陆成功登录界面消失
             try:
                 WebDriverWait(self.driver, self.login_complete_wait, self.login_complete_interval).until_not(
-                    EC.presence_of_element_located((By.ID, 'card-header')))
-                print(0000)
+                    EC.presence_of_element_located((By.CLASS_NAME, 'card-body')))
+                print("Error_times：%d" % err_sum)
+                break
             # 登陆界面存在，滑块未成功，继续滑块尝试
             except Exception as err:
                 err_sum += 1
@@ -225,13 +226,12 @@ class AutomaticReport:
                     raise Exception(err, '\nFailure times over %d, break!' % self.slider_try_num)
                 else:
                     continue
-            # 等待签到界面加载完成
-            finally:
-                while True:
-                    WebDriverWait(self.driver, self.page_load_wait, self.page_load_interval).until(
-                        EC.presence_of_element_located((By.XPATH, '//div[@class="mint-cell-group-title"]')))
-                    break
-                break
+
+        # 等待签到界面加载完成
+        while True:
+            WebDriverWait(self.driver, self.page_load_wait, self.page_load_interval).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'mint-indicator')))
+            break
 
     def signin(self):
         """
@@ -304,7 +304,10 @@ class AutomaticReport:
 
         res = requests.post(self.webhook_url, json.dumps(self.msg_content), headers=self.msg_headers)
 
-        print(res)
+        # 如果推送失败
+        if not res.json()["StatusMessage"] == "success":
+            print("Notification false!")
+            print(res)
 
 
 def main():

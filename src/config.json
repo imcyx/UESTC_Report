@@ -1,11 +1,15 @@
 {
   "online": true,
+  "feishu_info": true,
   "offline_deployment": {
     "account": "",
     "password": "",
+    "webhook_url": "",
+    "repository_url": "",
+    "geckodriver_path": "",
+
     "use_headless": false,
-    "use_gpu": false,
-    "geckodriver_path": "geckodriver.exe"
+    "use_gpu": false
   },
   "online_deployment": {
     "use_headless": true,
@@ -27,7 +31,50 @@
     "quit_wait_time": 1
   },
   "slider_try_num": 5,
+  "query_try_num": 10,
 
   "Temperature_index": "https://idas.uestc.edu.cn/authserver/login?service=https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/*default/index.do#/add",
-  "Info_index": "https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/*default/index.do#/dailyReport"
+  "Info_index": "https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/*default/index.do#/dailyReport",
+
+  "msg_content": {
+    "msg_type": "interactive",
+    "card": {
+      "config": {
+        "wide_screen_mode": true,
+        "enable_forward": true
+      },
+      "elements": [
+        {
+          "tag": "div",
+          "text": {
+            "content": "none",
+            "tag": "lark_md"
+          }
+        },
+        {
+          "actions": [
+          {
+            "tag": "button",
+            "text": {
+              "content": "none",
+              "tag": "lark_md"
+            },
+            "url": "none",
+            "type": "default",
+            "value": {}
+          }],
+          "tag": "action"
+        }
+      ],
+      "header": {
+        "title": {
+          "content": "none",
+          "tag": "plain_text"
+        }
+      }
+    }
+  },
+  "msg_headers": {
+    "Content-Type": "application/json"
+  }
 }

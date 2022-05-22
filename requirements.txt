@@ -1,3 +1,4 @@
 selenium
 opencv-python
 numpy
+requests

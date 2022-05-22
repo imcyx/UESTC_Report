@@ -215,6 +215,9 @@ class AutomaticReport:
             try:
                 WebDriverWait(self.driver, self.login_complete_wait, self.login_complete_interval).until_not(
                     EC.presence_of_element_located((By.CLASS_NAME, 'card-body')))
+                # 等待签到界面加载完成
+                WebDriverWait(self.driver, self.page_load_wait, self.page_load_interval).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'mint-indicator')))
                 print("Error_times：%d" % err_sum)
                 break
             # 登陆界面存在，滑块未成功，继续滑块尝试
@@ -227,17 +230,13 @@ class AutomaticReport:
                 else:
                     continue
 
-        # 等待签到界面加载完成
-        while True:
-            WebDriverWait(self.driver, self.page_load_wait, self.page_load_interval).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'mint-indicator')))
-            break
-
     def signin(self):
         """
         打卡签到部分实现
         :return: None
         """
+        self.driver.refresh()
+        time.sleep(3)
         # 进入打卡页面，模拟手动下滑
         btn_submit = "//button[@class='mint-button mt-btn-primary mint-button--large']"
         btn_confirm = "//button[@class='mint-msgbox-btn mint-msgbox-confirm mt-btn-primary']"

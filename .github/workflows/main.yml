@@ -30,5 +30,7 @@ jobs:
       - name: Run application
         env:
           LOGIN: ${{ secrets.LOGIN }}
+          NOTICE: ${{ secrets.NOTICE }}
+          REPOSITORY: ${{ secrets.REPOSITORY }}
         run: python -u src/main.py
         

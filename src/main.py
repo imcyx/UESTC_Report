@@ -13,7 +13,7 @@ import base64
 import re
 import json
 import requests
-from time import sleep, strftime
+import time
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.firefox.service import Service
@@ -51,7 +51,7 @@ class CalcSliderDist:
             print("Do not parse!")
 
     def process(self):
-        sleep(5)
+        time.sleep(5)
         # Base64解码
         self.Base64Decode(self.target_src, self.target_src_dir)
         self.Base64Decode(self.template_src, self.template_src_dir)
@@ -190,7 +190,7 @@ class AutomaticReport:
         self.driver.find_element(By.ID, 'username').send_keys(self.account)
         self.driver.find_element(By.ID, 'password').send_keys(self.password)
         self.driver.find_element(By.XPATH, "//button[1]").click()
-        sleep(self.detect_slider_wait)
+        time.sleep(self.detect_slider_wait)
 
         # 滑块失败计数
         err_sum = 0
@@ -243,12 +243,12 @@ class AutomaticReport:
         btn_confirm = "//button[@class='mint-msgbox-btn mint-msgbox-confirm mt-btn-primary']"
         for i in range(6):
             ActionChains(self.driver).send_keys(Keys.PAGE_DOWN)
-            sleep(self.simulate_slide_down_interval)
+            time.sleep(self.simulate_slide_down_interval)
 
         # 模拟提交->确认
-        sleep(self.submit_click_wait)
+        time.sleep(self.submit_click_wait)
         self.driver.find_element(By.XPATH, btn_submit).click()
-        sleep(self.confirm_click_wait)
+        time.sleep(self.confirm_click_wait)
         self.driver.find_element(By.XPATH, btn_confirm).click()
 
     def query(self):
@@ -263,10 +263,10 @@ class AutomaticReport:
             # 新标签页查看打卡结果
             self.driver.execute_script(f'window.open("{self.Info_index}");')
             # 打开结果界面，抓取最近打卡结果
-            sleep(self.switch_page_wait)
+            time.sleep(self.switch_page_wait)
             self.driver.switch_to.window(self.driver.window_handles[-1])
             # 抓取并显示打卡结果，如果页面为空就在新标签页刷新取结果
-            sleep(self.crawl_results_wait)
+            time.sleep(self.crawl_results_wait)
             s = self.driver.find_elements(By.XPATH, "//div[@class='mint-layout-container bh-bg-color-light sjaku1g03']")
             if s:
                 break
@@ -288,7 +288,7 @@ class AutomaticReport:
         :return: None
         """
         # 延时退出
-        sleep(self.quit_wait)
+        time.sleep(self.quit_wait)
         self.driver.quit()
 
     def notification_feishu(self, text):
@@ -300,7 +300,7 @@ class AutomaticReport:
         self.msg_content["card"]["elements"][0]["text"]["content"] = text
         self.msg_content["card"]["elements"][1]["actions"][0]["text"]["content"] = "查看Actions结果 :惊喜:"
         self.msg_content["card"]["elements"][1]["actions"][0]["url"] = self.repository_url
-        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % strftime("%H:%M:%S")
+        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % time.strftime("%H:%M:%S", time.localtime(time.time()+8*3600))
 
         res = requests.post(self.webhook_url, json.dumps(self.msg_content), headers=self.msg_headers)
 

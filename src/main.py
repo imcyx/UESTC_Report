@@ -42,7 +42,7 @@ class CalcSliderDist:
     def Base64Decode(self, src_info, filename):
         im_base64 = re.search("data:image/(?P<ext>.*?);base64,(?P<data>.*)", src_info, re.DOTALL)
         if im_base64:
-            ext = im_base64.groupdict().get("ext")
+            # ext = im_base64.groupdict().get("ext")
             data = im_base64.groupdict().get("data")
             img = base64.urlsafe_b64decode(data)
             with open(filename, "wb") as f:
@@ -114,6 +114,7 @@ class AutomaticReport:
         # 最大尝试次数
         self.slider_try_num = configs['slider_try_num']
         self.query_try_num = configs['query_try_num']
+        self.signin_try_num = configs['signin_try_num']
 
         # 页面网址
         self.Temperature_index = configs['Temperature_index']
@@ -133,11 +134,9 @@ class AutomaticReport:
                 self.password = secret[1]
             # geckodriver地址(在线无需配置)
             self.geckodriver_path = None
-            # 飞书通知信息
-            if configs['feishu_info']:
-                self.webhook_url = os.environ.get("NOTICE")
-                if self.webhook_url is None:
-                    raise Exception("Sorry <( _ _ )> ！Webhook link not provided")
+            # 通知信息webhook
+            self.webhook_url = os.environ.get("NOTICE")
+            if self.webhook_url is not None:
                 self.repository_url = os.environ.get("REPOSITORY")
 
         # 离线配置，直接读取账号密码
@@ -153,11 +152,9 @@ class AutomaticReport:
             self.geckodriver_path = deployment['geckodriver_path']
             if self.geckodriver_path is None:
                 raise Exception("If set offline deployment, please input your geckodriver path!")
-            # 飞书通知信息
-            if configs['feishu_info']:
-                self.webhook_url = deployment['webhook_url']
-                if self.webhook_url is None:
-                    raise Exception("If enable notification, please input your webhook link which generated in Feishu!")
+            # 通知信息webhook
+            self.webhook_url = deployment['webhook_url']
+            if self.webhook_url is not None:
                 self.repository_url = deployment['repository_url']
 
         # 浏览器自动化参数配置
@@ -176,6 +173,7 @@ class AutomaticReport:
             self.driver = webdriver.Firefox(service=Service(self.geckodriver_path), options=self.options)
         else:
             self.driver = webdriver.Firefox(options=self.options)
+
 
     def login(self):
         """
@@ -218,42 +216,66 @@ class AutomaticReport:
                 # 等待签到界面加载完成
                 # WebDriverWait(self.driver, self.page_load_wait, self.page_load_interval).until(
                 #     EC.presence_of_element_located((By.CLASS_NAME, 'mint-indicator')))
-                print("Error_times：%d" % err_sum)
+                print("Slider error times：%d" % err_sum)
                 break
             # 登陆界面存在，滑块未成功，继续滑块尝试
             except Exception as err:
                 err_sum += 1
                 # 连续过8次不入，则抛出异常
                 if err_sum > self.slider_try_num:
-                    self.driver.quit()
-                    raise Exception(err, '\nFailure times over %d, break!' % self.slider_try_num)
+                    self.quit()
+                    raise Exception(err, '\nSlider page load fail over %d times, break!' % self.slider_try_num)
                 else:
                     continue
+
 
     def signin(self):
         """
         打卡签到部分实现
         :return: None
         """
-        # self.driver.refresh()
+        err_sum = 0
         time.sleep(self.page_load_wait)
-        # 进入打卡页面，模拟手动下滑
-        btn_submit = "//button[@class='mint-button mt-btn-primary mint-button--large']"
-        btn_confirm = "//button[@class='mint-msgbox-btn mint-msgbox-confirm mt-btn-primary']"
-        for i in range(6):
-            ActionChains(self.driver).send_keys(Keys.PAGE_DOWN)
-            time.sleep(self.simulate_slide_down_interval)
+        while True:
+            # 进入打卡页面
+            btn_submit = "//button[@class='mint-button mt-btn-primary mint-button--large']"
+            btn_confirm = "//button[@class='mint-msgbox-btn mint-msgbox-confirm mt-btn-primary']"
+            # 模拟手动下滑
+            for i in range(6):
+                ActionChains(self.driver).send_keys(Keys.PAGE_DOWN)
+                time.sleep(self.simulate_slide_down_interval)
+            # 若成功则退出
+            try:
+                # 模拟提交->确认
+                time.sleep(self.submit_click_wait)
+                self.driver.find_element(By.XPATH, btn_submit).click()
+                time.sleep(self.confirm_click_wait)
+                self.driver.find_element(By.XPATH, btn_confirm).click()
+                print("Signin error times：%d" % err_sum)
+                break
+            # 若失败则说明页面加载错误
+            except Exception as err:
+                # 打开新标签页，继续提交
+                self.driver.execute_script(f'window.open("{self.Temperature_index}");')
+                time.sleep(self.page_load_interval)
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+                # self.driver.refresh()
+                err_sum += 1
+                if err_sum > self.signin_try_num:
+                    self.quit()
+                    raise Exception(err, '\nSignin page load fail over %d times, break!' % self.signin_try_num)
+                else:
+                    continue
 
-        # 模拟提交->确认
-        time.sleep(self.submit_click_wait)
-        self.driver.find_element(By.XPATH, btn_submit).click()
-        time.sleep(self.confirm_click_wait)
-        self.driver.find_element(By.XPATH, btn_confirm).click()
+        # 如果指定webhook，则飞书推送结果
+        if self.webhook_url is not None:
+            self.query()
+
 
     def query(self):
         """
         查询打卡结果实现
-        :return: 打卡结果
+        :return: None
         """
         # 结果抓取失败计数
         err_sum = 0
@@ -268,6 +290,7 @@ class AutomaticReport:
             time.sleep(self.crawl_results_wait)
             s = self.driver.find_elements(By.XPATH, "//div[@class='mint-layout-container bh-bg-color-light sjaku1g03']")
             if s:
+                print("Res capture error times：%d" % err_sum)
                 break
             else:
                 err_sum += 1
@@ -279,7 +302,8 @@ class AutomaticReport:
         for res in s:
             final_res += res.text.replace('\n', '\t') + '\n'
 
-        return final_res
+        self.notification(final_res)
+
 
     def quit(self):
         """
@@ -290,7 +314,8 @@ class AutomaticReport:
         time.sleep(self.quit_wait)
         self.driver.quit()
 
-    def notification_feishu(self, text):
+
+    def notification(self, text):
         """
         飞书通知
         :param text: 打卡结果
@@ -299,7 +324,8 @@ class AutomaticReport:
         self.msg_content["card"]["elements"][0]["text"]["content"] = text
         self.msg_content["card"]["elements"][1]["actions"][0]["text"]["content"] = "查看Actions结果 :惊喜:"
         self.msg_content["card"]["elements"][1]["actions"][0]["url"] = self.repository_url
-        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % time.strftime("%H:%M:%S", time.localtime(time.time()+8*3600))
+        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % \
+                                                                 time.strftime("%H:%M:%S", time.gmtime(time.time()-time.timezone))
 
         res = requests.post(self.webhook_url, json.dumps(self.msg_content), headers=self.msg_headers)
 
@@ -320,10 +346,6 @@ def main():
     Report.login()
     # 打卡
     Report.signin()
-    # 查询结果
-    final_res = Report.query()
-    # 飞书推送结果
-    Report.notification_feishu(final_res)
     # 退出
     Report.quit()
 

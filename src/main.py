@@ -268,7 +268,7 @@ class AutomaticReport:
                     continue
 
         # 如果指定webhook，则飞书推送结果
-        if self.webhook_url is not None:
+        if self.webhook_url != '':
             self.query()
 
 
@@ -321,11 +321,11 @@ class AutomaticReport:
         :param text: 打卡结果
         :return: None
         """
+        now_time = time.strftime("%H:%M:%S", time.gmtime(time.time()+60*60*8))
         self.msg_content["card"]["elements"][0]["text"]["content"] = text
         self.msg_content["card"]["elements"][1]["actions"][0]["text"]["content"] = "查看Actions结果 :惊喜:"
         self.msg_content["card"]["elements"][1]["actions"][0]["url"] = self.repository_url
-        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % \
-                                                                 time.strftime("%H:%M:%S", time.gmtime(time.time()-time.timezone))
+        self.msg_content["card"]["header"]["title"]["content"] = "打卡结果通报：%s" % now_time
 
         res = requests.post(self.webhook_url, json.dumps(self.msg_content), headers=self.msg_headers)
 

@@ -1,5 +1,6 @@
 {
-  "online": true,
+  "online": false,
+
   "offline_deployment": {
     "account": "",
     "password": "",

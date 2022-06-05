@@ -126,7 +126,7 @@ class AutomaticReport:
 
             # 账号密码
             secrets = os.environ.get("LOGIN")
-            if secrets is None:
+            if secrets == '':
                 raise Exception("Sorry <( _ _ )> ！Account & Password not provided")
             else:
                 secret = secrets.split("#")
@@ -136,7 +136,7 @@ class AutomaticReport:
             self.geckodriver_path = None
             # 通知信息webhook
             self.webhook_url = os.environ.get("NOTICE")
-            if self.webhook_url is not None:
+            if self.webhook_url != '':
                 self.repository_url = os.environ.get("REPOSITORY")
 
         # 离线配置，直接读取账号密码
@@ -146,15 +146,16 @@ class AutomaticReport:
             # 账号密码
             self.account = deployment['account']
             self.password = deployment['password']
-            if not self.account and self.password:
+            if self.account == '' or self.password == '':
                 raise Exception("If set offline deployment, please input your account and password information!")
             # geckodriver地址
             self.geckodriver_path = deployment['geckodriver_path']
-            if self.geckodriver_path is None:
-                raise Exception("If set offline deployment, please input your geckodriver path!")
+            if self.geckodriver_path == '':
+                self.geckodriver_path = None
+                print("If not set link to geckodriver, please input your geckodriver path.")
             # 通知信息webhook
             self.webhook_url = deployment['webhook_url']
-            if self.webhook_url is not None:
+            if self.webhook_url != '':
                 self.repository_url = deployment['repository_url']
 
         # 浏览器自动化参数配置

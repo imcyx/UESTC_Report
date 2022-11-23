@@ -1,4 +1,4 @@
-selenium
-opencv-python
-numpy
-requests
+opencv-python~=4.5.4.60
+numpy~=1.21.4
+requests~=2.26.0
+selenium~=4.1.0
